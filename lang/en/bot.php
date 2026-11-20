@@ -176,6 +176,13 @@ return [
 
     // Reporter Mini App ("My reports") opened from the bot.
     'miniapp' => [
+        'read_aloud' => 'Read aloud',
+        'stop_reading' => 'Stop reading',
+        'translate_case' => 'Translate to English with Google Gemini',
+        'translation_error' => 'Translation unavailable. Try again later.',
+        'voice_error' => 'English voice unavailable on this device.',
+        'translation' => 'Translation',
+        'translating' => 'Translating…',
         'tab_cases' => 'My Cases',
         'tab_location' => 'Location',
         'tab_profile' => 'Profile',

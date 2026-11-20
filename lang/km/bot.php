@@ -176,6 +176,13 @@ return [
 
     // Reporter Mini App ("My reports") opened from the bot.
     'miniapp' => [
+        'read_aloud' => 'ស្តាប់ការអាន',
+        'stop_reading' => 'បញ្ឈប់ការអាន',
+        'translate_case' => 'បកប្រែជាភាសាខ្មែរដោយ Google Gemini',
+        'translation_error' => 'មិនអាចបកប្រែបានទេ។ សូមព្យាយាមម្ដងទៀត។',
+        'voice_error' => 'ឧបករណ៍នេះមិនមានសំឡេងអានជាភាសាខ្មែរទេ។',
+        'translation' => 'អត្ថបទបកប្រែ',
+        'translating' => 'កំពុងបកប្រែ…',
         'tab_cases' => 'ករណីរបស់ខ្ញុំ',
         'tab_location' => 'ទីតាំង',
         'tab_profile' => 'ប្រវត្តិរូប',

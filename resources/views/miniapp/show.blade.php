@@ -38,7 +38,7 @@
 
 <div class="card mb-3 p-4 shadow-sm">
     <div class="hint mb-1 text-xs font-semibold uppercase tracking-wide">{{ __('bot.miniapp.your_report') }}</div>
-    <p class="whitespace-pre-line text-[15px] leading-relaxed">{{ $report->original_text }}</p>
+    @include('miniapp._description')
     <div class="hint mt-3 text-xs font-semibold uppercase tracking-wide">{{ __('bot.miniapp.location') }}</div>
     <p class="text-sm">{{ $report->location?->fullPath() }}</p>
     @if ($report->attachments->isNotEmpty())

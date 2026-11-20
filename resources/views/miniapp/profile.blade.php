@@ -11,11 +11,11 @@
 </div>
 
 <div class="mb-3 grid {{ $points !== null ? 'grid-cols-3' : 'grid-cols-2' }} gap-2 text-center">
-    <div class="card p-3 shadow-sm"><div class="text-xl font-bold">{{ $reportsSent }}</div><div class="hint text-[11px]">{{ __('bot.miniapp.reports_sent') }}</div></div>
+    <div class="card p-3 shadow-sm"><div class="text-xl font-bold">{{ $reportsSent }}</div><div class="hint text-xs">{{ __('bot.miniapp.reports_sent') }}</div></div>
     @if ($points !== null)
-        <div class="card p-3 shadow-sm"><div class="text-xl font-bold text-amber-600">⭐ {{ $points }}</div><div class="hint text-[11px]">{{ __('bot.miniapp.points') }}</div></div>
+        <div class="card p-3 shadow-sm"><div class="text-xl font-bold text-amber-600">⭐ {{ $points }}</div><div class="hint text-xs">{{ __('bot.miniapp.points') }}</div></div>
     @endif
-    <div class="card p-3 shadow-sm"><div class="text-sm font-bold">{{ \App\Support\Fmt::dt($user->consented_at ?? $user->created_at, 'd M Y') }}</div><div class="hint text-[11px]">{{ __('bot.miniapp.joined') }}</div></div>
+    <div class="card p-3 shadow-sm"><div class="text-sm font-bold">{{ \App\Support\Fmt::dt($user->consented_at ?? $user->created_at, 'd M Y') }}</div><div class="hint text-xs">{{ __('bot.miniapp.joined') }}</div></div>
 </div>
 @if ($points !== null)<p class="hint -mt-1 mb-3 text-center text-xs">{{ __('bot.miniapp.points_hint') }}</p>@endif
 

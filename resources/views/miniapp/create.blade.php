@@ -17,7 +17,7 @@
             {{-- Village already set: no drop-downs unless they want another place for this report. --}}
             @php $otherPlace = old('geographic_unit_id') && (int) old('geographic_unit_id') !== $last['id']; @endphp
             <div id="savedPlace" class="flex items-start gap-3" @if ($otherPlace) hidden @endif>
-                <p class="flex-1 text-[15px]">🏠 {{ $last['full'] }}</p>
+                <p class="flex-1 text-base">🏠 {{ $last['full'] }}</p>
                 <button type="button" id="changePlace" class="link shrink-0 text-sm font-medium">{{ __('bot.miniapp.change') }}</button>
             </div>
             <div id="placePicker" class="space-y-2" @unless ($otherPlace) hidden @endunless>

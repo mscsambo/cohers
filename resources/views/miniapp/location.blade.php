@@ -11,7 +11,7 @@
     <div class="flex items-start gap-3">
         <div class="min-w-0 flex-1">
             <div class="text-sm font-semibold">🏠 {{ __('bot.miniapp.my_village') }}</div>
-            <p class="mt-0.5 text-[15px]">{{ $villagePath ?? __('bot.miniapp.not_set') }}</p>
+            <p class="mt-0.5 text-base">{{ $villagePath ?? __('bot.miniapp.not_set') }}</p>
             <p class="hint mt-0.5 text-xs">{{ __('bot.miniapp.my_village_hint') }}</p>
         </div>
         <button type="button" id="changeVillage" class="link shrink-0 text-sm font-medium">{{ __('bot.miniapp.change') }}</button>

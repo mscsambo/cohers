@@ -8,6 +8,7 @@ use App\Models\ReportUpdate;
 use App\Services\Telegram\TelegramWebAppAuth;
 use App\Services\Verification\ReportVerificationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\Feature\Concerns\BuildsCohersFixtures;
 use Tests\TestCase;
 
@@ -73,6 +74,21 @@ class MiniAppTest extends TestCase
         $this->get('/reports')->assertForbidden();
         $this->get('/admin')->assertForbidden();
         $this->get('/field')->assertForbidden();
+    }
+
+    public function test_case_translation_uses_the_reporters_language_and_checks_ownership(): void
+    {
+        $report = $this->submit('Many pigs have fever and stopped eating');
+        $url = route('my.translation', $report);
+        Http::fake(['*' => Http::response(['candidates' => [['content' => ['parts' => [['text' => 'សត្វជ្រូកជាច្រើនក្តៅខ្លួន និងឈប់ស៊ីចំណី។']]]]]])]);
+        config(['cohers.ai.gemini_api_key' => 'test-key']);
+        $other = $this->user('Someone Else', \App\Enums\RoleName::REPORTER, 8002);
+        $this->actingAs($other)->postJson($url)->assertNotFound();
+        Http::assertNothingSent();
+        $this->reporter->update(['preferred_language' => 'km']);
+        $this->actingAs($this->reporter)->postJson($url)->assertOk()->assertJsonPath('text', 'សត្វជ្រូកជាច្រើនក្តៅខ្លួន និងឈប់ស៊ីចំណី។');
+        Http::assertSent(fn ($request) => str_contains($request['systemInstruction']['parts'][0]['text'], 'Khmer')
+            && $request['contents'][0]['parts'][0]['text'] === $report->original_text);
     }
 
     public function test_unknown_or_fake_telegram_users_are_refused(): void

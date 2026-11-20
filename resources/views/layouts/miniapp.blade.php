@@ -12,6 +12,9 @@
     <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'Noto Sans Khmer', 'system-ui', 'sans-serif'] } } } };</script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        html { font-size: 125%; }
+        body .text-xs { font-size: .85rem; line-height: 1.55; }
+        body .text-sm { font-size: .95rem; line-height: 1.55; }
         /* Telegram passes its theme as CSS variables; fall back to COHERS colours in a browser. */
         :root { --bg: var(--tg-theme-secondary-bg-color, #f1f5f9); --card: var(--tg-theme-bg-color, #ffffff); --text: var(--tg-theme-text-color, #1e293b);
                 --hint: var(--tg-theme-hint-color, #64748b); --link: var(--tg-theme-link-color, #0f766e);
@@ -23,7 +26,7 @@
         .link { color: var(--link); }
         .btn-main { background: var(--btn); color: var(--btn-text); border-radius: .75rem; padding: .7rem 1rem; font-weight: 600; width: 100%; }
         .btn-second { background: transparent; color: var(--text); border: 1px solid rgba(100,116,139,.45); border-radius: .75rem; padding: .7rem 1rem; font-weight: 600; width: 100%; }
-        .field { width: 100%; border: 1px solid rgba(100,116,139,.35); border-radius: .75rem; padding: .65rem .8rem; font-size: 16px; background: var(--card); color: var(--text); }
+        .field { width: 100%; border: 1px solid rgba(100,116,139,.35); border-radius: .75rem; padding: .65rem .8rem; font-size: 1rem; background: var(--card); color: var(--text); }
         .field:focus { outline: 2px solid var(--btn); outline-offset: -1px; }
     </style>
     {{-- Offline queue for reports written without internet; loaded first so page scripts can use it. --}}
@@ -102,11 +105,11 @@
 <nav class="card fixed inset-x-0 bottom-0 z-20 border-t border-slate-300/40 !rounded-none" style="padding-bottom: env(safe-area-inset-bottom)">
     <div class="mx-auto grid max-w-xl grid-cols-3">
         @foreach ($tabs as $key => [$url, $label, $icon])
-            <a href="{{ $url }}" class="relative flex flex-col items-center gap-0.5 py-2 text-[11px] {{ $tab === $key ? 'link font-semibold' : 'hint' }}" @if ($tab === $key) aria-current="page" @endif>
+            <a href="{{ $url }}" class="relative flex flex-col items-center gap-0.5 py-2 text-xs {{ $tab === $key ? 'link font-semibold' : 'hint' }}" @if ($tab === $key) aria-current="page" @endif>
                 <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="{{ $tab === $key ? 2.2 : 1.7 }}" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $icon }}"/></svg>
                 {{ $label }}
                 @if ($key === 'cases' && $waitingAnswers)
-                    <span class="absolute right-[calc(50%-1.4rem)] top-1 grid h-4 min-w-4 place-items-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">{{ $waitingAnswers }}</span>
+                    <span class="absolute right-[calc(50%-1.4rem)] top-1 grid h-4 min-w-4 place-items-center rounded-full bg-rose-500 px-1 text-xs font-bold text-white">{{ $waitingAnswers }}</span>
                 @endif
             </a>
         @endforeach

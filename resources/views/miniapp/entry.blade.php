@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Noto+Sans+Khmer:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        html { font-size: 125%; }
         body { margin: 0; min-height: 100vh; display: grid; place-items: center; font-family: Inter, 'Noto Sans Khmer', system-ui, sans-serif;
                background: var(--tg-theme-secondary-bg-color, #f1f5f9); color: var(--tg-theme-text-color, #1e293b); }
         .box { max-width: 22rem; padding: 2rem 1.5rem; text-align: center; }

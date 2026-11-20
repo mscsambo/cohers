@@ -12,13 +12,13 @@
 
 <div class="mb-4 grid grid-cols-3 gap-2 text-center">
     <a href="{{ route('my.index', ['filter' => 'open']) }}" class="card p-3 shadow-sm">
-        <div class="text-2xl font-bold text-sky-700">{{ $counts['open'] }}</div><div class="hint text-[11px]">{{ __('bot.miniapp.count_open') }}</div>
+        <div class="text-2xl font-bold text-sky-700">{{ $counts['open'] }}</div><div class="hint text-xs">{{ __('bot.miniapp.count_open') }}</div>
     </a>
     <a href="{{ route('my.index', ['filter' => 'waiting']) }}" class="card p-3 shadow-sm {{ $counts['waiting'] ? 'ring-2 ring-orange-300' : '' }}">
-        <div class="text-2xl font-bold {{ $counts['waiting'] ? 'text-orange-600' : 'hint' }}">{{ $counts['waiting'] }}</div><div class="hint text-[11px]">{{ __('bot.miniapp.count_waiting') }}</div>
+        <div class="text-2xl font-bold {{ $counts['waiting'] ? 'text-orange-600' : 'hint' }}">{{ $counts['waiting'] }}</div><div class="hint text-xs">{{ __('bot.miniapp.count_waiting') }}</div>
     </a>
     <a href="{{ route('my.index', ['filter' => 'closed']) }}" class="card p-3 shadow-sm">
-        <div class="text-2xl font-bold text-emerald-700">{{ $counts['closed'] }}</div><div class="hint text-[11px]">{{ __('bot.miniapp.count_closed') }}</div>
+        <div class="text-2xl font-bold text-emerald-700">{{ $counts['closed'] }}</div><div class="hint text-xs">{{ __('bot.miniapp.count_closed') }}</div>
     </a>
 </div>
 
