@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>COHERS Case Flow</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column; diagrams and tables break out to a wider measure on "paper" panels. */
+:root {
+  --bg: #f3f6f5;
+  --surface: #ffffff;
+  --paper: #ffffff;
+  --fg: #16231f;
+  --muted: #55665f;
+  --line: #d6e0dc;
+  --accent: #0f766e;
+  --accent-soft: #dcefeb;
+  --warn: #b45309;
+  --crit: #be123c;
+  --ok: #047857;
+  --font-display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1513; --surface: #15201d; --paper: #f2f6f4; --fg: #e3ece8; --muted: #97aaa2; --line: #2a3a35;
+    --accent: #2dd4bf; --accent-soft: #123a35; --warn: #f59e0b; --crit: #fb7185; --ok: #34d399; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1513; --surface: #15201d; --paper: #f2f6f4; --fg: #e3ece8; --muted: #97aaa2; --line: #2a3a35;
+  --accent: #2dd4bf; --accent-soft: #123a35; --warn: #f59e0b; --crit: #fb7185; --ok: #34d399; color-scheme: dark;
+}
+
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 16px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1040px; margin: 0 auto; padding-block: 40px 72px; display: grid; gap: 56px; }
+.prose { max-width: 68ch; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(2rem, 5vw, 3rem); letter-spacing: -0.01em; }
+h2 { font-size: 1.6rem; }
+h3 { font-size: 1.15rem; }
+p { margin: 0; }
+.eyebrow { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.lede { color: var(--muted); font-size: 1.1rem; max-width: 64ch; }
+header { display: grid; gap: 14px; }
+section { display: grid; gap: 18px; }
+code, .mono { font-family: var(--font-mono); font-size: 0.9em; }
+code { background: var(--accent-soft); color: var(--fg); padding: 1px 6px; border-radius: 4px; }
+
+/* Roles */
+.roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.role { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.role .chan { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); }
+.role p { font-size: 0.94rem; }
+
+/* Stages: a real sequence, so they are numbered */
+.stages { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; counter-reset: stage; }
+.stage { counter-increment: stage; display: grid; grid-template-columns: 52px 1fr; gap: 16px; padding: 18px 0; border-top: 1px solid var(--line); }
+.stage:last-child { border-bottom: 1px solid var(--line); }
+.stage::before {
+  content: counter(stage); font-family: var(--font-display); font-weight: 700; font-size: 1.6rem; color: var(--accent);
+  line-height: 1; padding-top: 2px;
+}
+.stage > div { display: grid; gap: 8px; min-width: 0; }
+.stage .who { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.stage ul { margin: 0; padding-left: 1.1rem; display: grid; gap: 4px; }
+
+/* Diagrams on paper */
+.figure { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 20px; overflow-x: auto; }
+.figure pre.mermaid { margin: 0; background: transparent; color: #16231f; text-align: center; min-width: 560px; }
+.caption { font-size: 0.9rem; color: var(--muted); max-width: 72ch; }
+
+/* Tables */
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; min-width: 720px; font-size: 0.92rem; }
+th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+th { font-family: var(--font-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 500; background: var(--accent-soft); }
+tr:last-child td { border-bottom: 0; }
+td.event { font-weight: 600; white-space: nowrap; }
+.none { color: var(--muted); }
+.tag { display: inline-block; font-family: var(--font-mono); font-size: 0.7rem; padding: 1px 6px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.tag.always { color: var(--crit); border-color: currentColor; }
+.tag.opt { color: var(--accent); border-color: currentColor; }
+.prio { font-family: var(--font-mono); font-weight: 500; }
+.prio.low { color: var(--muted); } .prio.medium { color: var(--accent); } .prio.high { color: var(--warn); } .prio.critical { color: var(--crit); }
+.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.callout { border-left: 3px solid var(--warn); background: var(--surface); padding: 12px 16px; border-radius: 0 8px 8px 0; font-size: 0.95rem; max-width: 72ch; }
+footer { color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--line); padding-top: 16px; }
+@media (max-width: 560px) { .stage { grid-template-columns: 36px 1fr; gap: 10px; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">COHERS · Community Reporting, Verification &amp; Early Warning</span>
+    <h1>COHERS Case Flow</h1>
+    <p class="lede">How a report moves from a villager's Telegram message to a closed case, who acts at each step, and which Telegram notifications each role receives. Written from the running pilot configuration.</p>
+  </header>
+
+  <section>
+    <h2>Who takes part</h2>
+    <div class="roles">
+      <div class="role"><span class="chan">Telegram bot</span><h3>Community reporter</h3><p>Registers in the bot (Khmer or English), submits reports with location, description and photos, answers officer questions, follows progress with the reference code.</p></div>
+      <div class="role"><span class="chan">Telegram bot</span><h3>Focal point · VHSG / CAO</h3><p>Receives assigned cases with action buttons. VHSG handles human health; CAO handles animal health and environment. Acknowledges, verifies in the field, asks questions, escalates, submits findings.</p></div>
+      <div class="role"><span class="chan">Dashboard + Telegram alerts</span><h3>District officer</h3><p>Sees only their own districts. Does manual triage, reassigns, reviews and resolves escalations, links duplicate reports, and approves closure or reopens.</p></div>
+      <div class="role"><span class="chan">Dashboard + optional alerts</span><h3>System administrator</h3><p>Manages accounts, geography, the Focal Point Router, AI and Telegram configuration. Monitors every district and may correct an assignment, but cannot close cases or resolve escalations.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>From report to closure</h2>
+    <ol class="stages">
+      <li class="stage"><div>
+        <span class="who">Reporter · Telegram</span>
+        <h3>Submit the report</h3>
+        <ul>
+          <li>📝 <b>Submit Report</b> → district → commune → village → what happened → how many affected → when → up to 3 photos and an optional location pin → review → <b>Submit</b>.</li>
+          <li>The bot answers at once with a reference code like <code>COH-2026-000151</code>. Pressing Submit twice never creates two reports.</li>
+        </ul>
+      </div></li>
+      <li class="stage"><div>
+        <span class="who">COHERS · automatic, seconds</span>
+        <h3>Intake and triage</h3>
+        <ul>
+          <li>Saves the original text unchanged, downloads photos to private storage, and flags a possible duplicate (same commune, similar text, last 3 days). Nothing is deleted or rejected automatically.</li>
+          <li>AI (Gemini, or the offline keyword classifier) suggests a category and priority. This is <b>advisory only</b>. Safety rules (for example "person died", "chemical", "many dead") can raise the priority.</li>
+          <li>Uncertain, failed or unknown classification → status <b>Triage Review</b> for a person to classify.</li>
+          <li><b>CRITICAL</b> priority opens a district escalation <b>at the same time</b> as routing continues.</li>
+        </ul>
+      </div></li>
+      <li class="stage"><div>
+        <span class="who">COHERS · Focal Point Router</span>
+        <h3>Route to a field officer</h3>
+        <ul>
+          <li>Looks for the <b>primary</b> officer of the right type at village → commune → district, then the <b>backup</b>.</li>
+          <li>Found → status <b>Assigned</b>, with an acknowledgement deadline set by priority.</li>
+          <li>Nobody found → status <b>Triage Review</b> and a <b>No officer</b> escalation to the district.</li>
+        </ul>
+      </div></li>
+      <li class="stage"><div>
+        <span class="who">VHSG / CAO · Telegram</span>
+        <h3>Field response</h3>
+        <ul>
+          <li><b>Acknowledge</b> → Acknowledged (accepted, not yet verified). <b>Start verification</b> → Verifying.</li>
+          <li><b>Request info</b> → the reporter gets the question with a Reply button; status Needs Info until they answer.</li>
+          <li><b>Escalate</b> with a reason → district escalation; the officer keeps the case.</li>
+          <li><b>Submit findings</b> with notes → <b>Verified</b>, <b>Rejected</b> or <b>Duplicate</b> (linked under one incident). "Follow-up needed" also opens an escalation.</li>
+        </ul>
+      </div></li>
+      <li class="stage"><div>
+        <span class="who">District officer · dashboard</span>
+        <h3>District review</h3>
+        <ul>
+          <li>Classifies Triage Review cases (manual triage), which routes them to an officer.</li>
+          <li>Reviews escalations: <b>Start review</b>, then record a decision (follow-up directed, reassigned, more evidence, referred onward, no further action).</li>
+          <li>Reassigns to another eligible VHSG/CAO, and links reports describing the same event.</li>
+        </ul>
+      </div></li>
+      <li class="stage"><div>
+        <span class="who">District officer · dashboard</span>
+        <h3>Close, or reopen</h3>
+        <ul>
+          <li>Closure needs an officer outcome (Verified, Rejected or Duplicate) and <b>no open escalation</b>.</li>
+          <li>The district writes an internal outcome (never sent to the reporter) and an optional message to the reporter.</li>
+          <li>Reopen with a reason returns the case to the outcome it had. Every step is in the audit log.</li>
+        </ul>
+      </div></li>
+    </ol>
+  </section>
+
+  <section>
+    <div class="prose" style="display:grid;gap:8px">
+      <h2>The whole flow by role</h2>
+      <p class="caption">Solid arrows are the normal path. Dotted arrows are alerts that run in parallel.</p>
+    </div>
+    <div class="figure">
+<pre class="mermaid">
+%%{init: {"theme": "neutral", "flowchart": {"curve": "basis"}}}%%
+flowchart TD
+  subgraph REP["Community reporter · Telegram"]
+    R1["Submit report&lt;br/&gt;location · description · photos"]
+    R2["Answer officer question"]
+  end
+  subgraph SYS["COHERS · automatic"]
+    S1["Save report&lt;br/&gt;reference code"]
+    S2["Duplicate check&lt;br/&gt;AI triage (advisory)&lt;br/&gt;safety rules"]
+    S3{"Classification&lt;br/&gt;certain?"}
+    S4["Router: primary then backup&lt;br/&gt;village → commune → district"]
+    S5{"Officer&lt;br/&gt;found?"}
+  end
+  subgraph FP["VHSG / CAO · Telegram"]
+    F1["Acknowledge"]
+    F2["Start verification"]
+    F3["Request info"]
+    F4["Escalate"]
+    F5["Submit findings&lt;br/&gt;Verified · Rejected · Duplicate"]
+  end
+  subgraph DIS["District officer · dashboard"]
+    D1["Manual triage"]
+    D2["Review escalation&lt;br/&gt;decide · reassign"]
+    D3["Approve closure"]
+  end
+  R1 --> S1 --> S2 --> S3
+  S3 -- yes --> S4
+  S3 -- "no / AI failed" --> D1 --> S4
+  S4 --> S5
+  S5 -- yes --> F1
+  S5 -- no --> D2
+  F1 --> F2 --> F5
+  F2 --> F3 --> R2 --> F2
+  F2 --> F4 --> D2
+  D2 -- reassign --> F1
+  F5 --> D3
+  S2 -. "CRITICAL" .-> D2
+  F5 -. "follow-up needed" .-> D2
+</pre>
+    </div>
+  </section>
+
+  <section>
+    <div class="prose" style="display:grid;gap:8px">
+      <h2>Case status life cycle</h2>
+      <p class="caption">The ten statuses the dashboard shows. A case can also go straight from Assigned or Acknowledged to findings; the diagram shows the usual path. Reporters see simpler wording (table below).</p>
+    </div>
+    <div class="figure">
+<pre class="mermaid">
+%%{init: {"theme": "neutral"}}%%
+stateDiagram-v2
+  [*] --> SUBMITTED
+  SUBMITTED --> ASSIGNED: officer found
+  SUBMITTED --> TRIAGE_REVIEW: uncertain, AI failed or no officer
+  TRIAGE_REVIEW --> ASSIGNED: classified and routed
+  ASSIGNED --> ASSIGNED: reassigned or backup takes over
+  ASSIGNED --> ACKNOWLEDGED: officer accepts
+  ACKNOWLEDGED --> VERIFYING: field verification starts
+  ACKNOWLEDGED --> NEEDS_INFO: question to reporter
+  VERIFYING --> NEEDS_INFO: question to reporter
+  NEEDS_INFO --> VERIFYING: reporter answers
+  VERIFYING --> VERIFIED: findings
+  VERIFYING --> REJECTED: findings
+  VERIFYING --> DUPLICATE: findings
+  VERIFIED --> CLOSED: district approves
+  REJECTED --> CLOSED: district approves
+  DUPLICATE --> CLOSED: district approves
+  CLOSED --> [*]
+  note right of CLOSED : Reopen returns the case to Verified, Rejected or Duplicate
+</pre>
+    </div>
+  </section>
+
+  <section>
+    <div class="prose" style="display:grid;gap:8px">
+      <h2>Escalations run alongside the status</h2>
+      <p class="caption">Tracked separately, so a Verified case can still have an open escalation. A case cannot be closed while any escalation is open.</p>
+    </div>
+    <div class="figure">
+<pre class="mermaid">
+%%{init: {"theme": "neutral"}}%%
+stateDiagram-v2
+  [*] --> NONE
+  NONE --> OPEN: trigger
+  OPEN --> IN_REVIEW: district starts review
+  OPEN --> RESOLVED: district records decision
+  IN_REVIEW --> RESOLVED: district records decision
+  RESOLVED --> OPEN: new trigger
+  note right of NONE
+    Triggers: CRITICAL priority,
+    officer escalates or asks follow-up,
+    acknowledgement overdue,
+    no officer available,
+    urgent report while AI failed
+  end note
+</pre>
+    </div>
+  </section>
+
+  <section>
+    <div class="prose" style="display:grid;gap:8px">
+      <h2>Notifications on a typical case</h2>
+      <p class="caption">Every message goes through the queue worker to the person's linked Telegram chat. Staff connect theirs in the dashboard under My Telegram; field officers use an activation link from the administrator.</p>
+    </div>
+    <div class="figure">
+<pre class="mermaid">
+%%{init: {"theme": "neutral", "sequence": {"mirrorActors": false}}}%%
+sequenceDiagram
+  autonumber
+  actor Rep as Reporter
+  participant Sys as COHERS
+  actor FP as VHSG / CAO
+  actor DO as District officer
+  Rep->>Sys: Submit report
+  Sys-->>Rep: ✅ Received, code COH-…
+  Sys->>FP: 🚨 New case with action buttons
+  Sys-->>Rep: 📌 Assigned to a local VHSG / CAO
+  Sys-->>DO: 📋 Case assigned: officer and deadline
+  FP->>Sys: Acknowledge
+  Sys-->>Rep: ✅ Officer accepted your report
+  FP->>Sys: Start verification
+  Sys-->>Rep: ℹ️ Under verification
+  opt Officer needs more details
+    FP->>Sys: Request info
+    Sys-->>Rep: ❓ Question with Reply button
+    Rep->>Sys: Reply
+    Sys-->>FP: 💬 Reporter replied
+  end
+  FP->>Sys: Submit findings
+  Sys-->>Rep: ℹ️ Reviewed
+  Sys-->>DO: 📝 Findings submitted, ready to close
+  DO->>Sys: Approve closure with note to reporter
+  Sys-->>Rep: 🏁 Closed: result, note and thanks
+</pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>Who receives what</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>When</th><th>Reporter (case owner)</th><th>Assigned VHSG / CAO</th><th>District officers of that district</th><th>Administrators</th></tr></thead>
+        <tbody>
+          <tr><td class="event">Report submitted</td><td>✅ Received + reference code</td><td class="none">—</td><td class="none">—</td><td class="none">—</td></tr>
+          <tr><td class="event">Case assigned or reassigned</td><td>📌 Assigned, or "passed to another officer", with officer type and location</td><td>🚨 Case alert with Acknowledge, Verify, Request info, Findings, Escalate buttons</td><td>📋 Case assigned: officer, how, deadline <span class="tag opt">can turn off</span></td><td>📋 Same <span class="tag opt">can turn off</span></td></tr>
+          <tr><td class="event">Officer acknowledges</td><td>✅ Officer accepted</td><td class="none">—</td><td class="none">—</td><td class="none">—</td></tr>
+          <tr><td class="event">Verification starts</td><td>ℹ️ Under verification</td><td class="none">—</td><td class="none">—</td><td class="none">—</td></tr>
+          <tr><td class="event">Officer asks a question</td><td>❓ Question with Reply button</td><td class="none">—</td><td class="none">—</td><td class="none">—</td></tr>
+          <tr><td class="event">Reporter answers</td><td class="none">—</td><td>💬 The answer</td><td class="none">—</td><td class="none">—</td></tr>
+          <tr><td class="event">Findings submitted</td><td>ℹ️ Reviewed</td><td class="none">—</td><td>📝 Ready for closure <span class="tag opt">can turn off</span></td><td>📝 Same <span class="tag opt">can turn off</span></td></tr>
+          <tr><td class="event">Escalation opened</td><td class="none">—</td><td class="none">—</td><td>⚠️ District alert with link <span class="tag always">always</span></td><td>⚠️ Same <span class="tag opt">can turn off</span></td></tr>
+          <tr><td class="event">Acknowledgement overdue</td><td class="none">—</td><td>⏰ Reminder</td><td>⚠️ For HIGH and CRITICAL <span class="tag always">always</span></td><td>⚠️ Same <span class="tag opt">can turn off</span></td></tr>
+          <tr><td class="event">Case closed</td><td>🏁 Closed: result in plain words, district note, thanks</td><td class="none">—</td><td class="none">—</td><td class="none">—</td></tr>
+          <tr><td class="event">Case reopened</td><td>🔄 Reopened for follow-up</td><td class="none">—</td><td class="none">—</td><td class="none">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="caption">The person who reassigns a case is not alerted about their own action, and the assigned officer gets the case alert rather than the staff notice. Officer notes and internal outcomes are never sent to reporters. Staff choose their alerts in <b>My Telegram → What I receive</b>; delivery problems appear under <b>Admin → Alerts &amp; Jobs</b>.</p>
+  </section>
+
+  <section>
+    <h2>When nobody acknowledges in time</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Priority</th><th>Acknowledge within</th><th>When missed (checked every minute)</th></tr></thead>
+        <tbody>
+          <tr><td><span class="prio low">LOW</span></td><td class="num">24 hours</td><td>Reminder to the officer, repeated each period; case stays in the Overdue list.</td></tr>
+          <tr><td><span class="prio medium">MEDIUM</span></td><td class="num">4 hours</td><td>Reminder first; if still not acknowledged a period later, the backup officer takes over.</td></tr>
+          <tr><td><span class="prio high">HIGH</span></td><td class="num">30 minutes</td><td>Backup officer takes over and the district is alerted (Overdue escalation).</td></tr>
+          <tr><td><span class="prio critical">CRITICAL</span></td><td class="num">15 minutes</td><td>District is alerted at once, then again every 15 minutes, with a reminder to the officer, until someone acknowledges.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="caption">If no backup exists, a No officer escalation goes to the district. Targets are pilot values and can be changed in <b>Admin → Language &amp; Settings</b>.</p>
+  </section>
+
+  <section>
+    <h2>What the reporter sees</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Dashboard status</th><th>Shown to the reporter</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">SUBMITTED</td><td>Received</td></tr>
+          <tr><td class="mono">TRIAGE_REVIEW</td><td>Being Reviewed</td></tr>
+          <tr><td class="mono">ASSIGNED · ACKNOWLEDGED</td><td>Assigned</td></tr>
+          <tr><td class="mono">VERIFYING</td><td>Under Verification</td></tr>
+          <tr><td class="mono">NEEDS_INFO</td><td>More Information Needed</td></tr>
+          <tr><td class="mono">VERIFIED · REJECTED · DUPLICATE</td><td>Reviewed (the closure message later explains the result)</td></tr>
+          <tr><td class="mono">CLOSED</td><td>Closed</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Who may do what</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Action</th><th>Reporter</th><th>VHSG / CAO</th><th>District officer</th><th>Administrator</th></tr></thead>
+        <tbody>
+          <tr><td class="event">Submit a report</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+          <tr><td class="event">See cases</td><td>Own only</td><td>Assigned to them</td><td>Their districts</td><td>All, for oversight</td></tr>
+          <tr><td class="event">Acknowledge, verify, findings</td><td class="none">—</td><td>Their assigned cases</td><td class="none">—</td><td class="none">—</td></tr>
+          <tr><td class="event">Manual triage, reassign</td><td class="none">—</td><td class="none">—</td><td>Their districts</td><td>As a correction, with reason</td></tr>
+          <tr><td class="event">Resolve escalations</td><td class="none">—</td><td class="none">—</td><td>Their districts</td><td>Monitor only</td></tr>
+          <tr><td class="event">Approve closure, reopen</td><td class="none">—</td><td class="none">—</td><td>Their districts</td><td class="none">—</td></tr>
+          <tr><td class="event">Accounts, router, settings</td><td class="none">—</td><td class="none">—</td><td class="none">—</td><td>Yes</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="callout">Acknowledged is not Verified, and Verified is not Closed. A case can be field-verified and still stay open while the district finishes its response.</p>
+  </section>
+
+  <footer>COHERS pilot · based on SRS v1.0 and the deployed application. AI classifications are advisory and never establish a diagnosis, a verified event or a closure.</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
+<script>
+  // Stop the library's own all-at-once pass on load; the loop below draws one diagram at a time.
+  if (window.mermaid) mermaid.initialize({ startOnLoad: false });
+  // The claude.ai viewer draws these diagrams itself. A downloaded copy has no viewer,
+  // so draw any diagram that is still plain text: after fonts load, one at a time.
+  window.addEventListener('load', function () {
+    setTimeout(async function () {
+      if (!window.mermaid) return;
+      var pending = Array.prototype.filter.call(document.querySelectorAll('pre.mermaid'), function (el) {
+        return !el.querySelector('svg');
+      });
+      if (!pending.length) return;
+      if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (e) {} }
+      for (var i = 0; i < pending.length; i++) {
+        var el = pending[i];
+        for (var attempt = 0; attempt < 5 && !el.querySelector('svg'); attempt++) {
+          el.removeAttribute('data-processed');
+          try { await mermaid.run({ nodes: [el], suppressErrors: false }); } catch (e) { await new Promise(function (r) { setTimeout(r, 800); }); }
+        }
+      }
+    }, 400);
+  });
+</script>
+
+</body>
+</html>
