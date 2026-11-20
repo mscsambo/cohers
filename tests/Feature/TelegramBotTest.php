@@ -85,6 +85,25 @@ class TelegramBotTest extends TestCase
         $this->assertSame('idle', \App\Models\TelegramSession::where('telegram_user_id', $tg)->value('state'));
     }
 
+    public function test_voice_notes_fill_the_description_only_after_successful_transcription(): void
+    {
+        $session = \App\Models\TelegramSession::firstOrCreate(['telegram_user_id' => 8001], ['chat_id' => 8001]);
+        $session->transition('rpt_desc', ['draft' => ['id' => 'voice-draft']]);
+        config(['cohers.ai.gemini_api_key' => 'test-key']);
+        $audio = 'OggS'.str_repeat(chr(0), 24).'OpusHead'.str_repeat(chr(0), 120);
+        $this->partialMock(\App\Services\Telegram\TelegramClient::class)
+            ->shouldReceive('downloadFile')->once()->with('voice-file', 6 * 1024 * 1024)->andReturn([$audio, 'voice.oga']);
+        \Illuminate\Support\Facades\Http::fake(['*' => \Illuminate\Support\Facades\Http::response([
+            'candidates' => [['content' => ['parts' => [['text' => 'Flooding near the school.']]]]],
+        ])]);
+        $this->msg(8001, '', ['voice' => ['file_id' => 'voice-file', 'duration' => 70]]);
+        $this->assertSame('rpt_desc', $session->fresh()->state);
+        $this->msg(8001, '', ['voice' => ['file_id' => 'voice-file', 'duration' => 7]]);
+        $this->assertSame('Flooding near the school.', $session->fresh()->get('draft.text'));
+        $this->assertSame('rpt_affected', $session->fresh()->state);
+        $this->assertDatabaseCount('reports', 0);
+    }
+
     public function test_khmer_menu_labels_are_recognised(): void
     {
         $this->msg(8001, '📋 របាយការណ៍របស់ខ្ញុំ');

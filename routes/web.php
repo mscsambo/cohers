@@ -44,6 +44,7 @@ Route::middleware('auth')->prefix('my')->name('my.')->group(function () {
     Route::get('/photos/{attachment}', [District\ReportController::class, 'attachment'])->name('photo');
     Route::get('/{report}', [\App\Http\Controllers\MiniApp\MyReportsController::class, 'show'])->name('show');
     Route::post('/{report}/translation', [\App\Http\Controllers\MiniApp\MyReportsController::class, 'translate'])->middleware('throttle:10,1')->name('translation');
+    Route::post('/{report}/speech', [\App\Http\Controllers\MiniApp\MyReportsController::class, 'speech'])->middleware('throttle:6,1')->name('speech');
     Route::post('/{report}/answer', [\App\Http\Controllers\MiniApp\MyReportsController::class, 'answer'])->middleware('throttle:20,1')->name('answer');
     Route::post('/{report}/update', [\App\Http\Controllers\MiniApp\MyReportsController::class, 'addUpdate'])->middleware('throttle:20,1')->name('update');
 });

@@ -201,7 +201,7 @@ class TelegramConversationService
         }
 
         $handled = match ($this->session->state) {
-            'rpt_desc' => $this->wizardDescription($text),
+            'rpt_desc' => isset($msg['voice']) ? $this->voiceDescription($msg['voice']) : $this->wizardDescription($text),
             'rpt_affected' => $this->wizardAffected($text),
             'rpt_evidence' => $this->wizardEvidence($msg),
             'track_code' => $this->trackReport($text),
@@ -664,6 +664,42 @@ class TelegramConversationService
         }
 
         return null;
+    }
+
+    private function voiceDescription(array $voice): bool
+    {
+        $maxBytes = 6 * 1024 * 1024;
+        if (! config('cohers.ai.gemini_api_key') || empty($voice['file_id'])
+            || ($voice['duration'] ?? 0) > 60 || ($voice['file_size'] ?? 0) > $maxBytes) {
+            $this->send($this->t('wizard.voice_retry'));
+
+            return true;
+        }
+        try {
+            [$bytes] = $this->tg->downloadFile($voice['file_id'], $maxBytes);
+            $mime = (new \finfo(FILEINFO_MIME_TYPE))->buffer($bytes);
+            $mime = ['application/ogg' => 'audio/ogg', 'video/mp4' => 'audio/mp4', 'audio/x-m4a' => 'audio/mp4'][$mime] ?? $mime;
+            if (! in_array($mime, ['audio/ogg', 'audio/mp4', 'audio/mpeg'], true)) {
+                throw new \UnexpectedValueException('Unsupported voice note format.');
+            }
+            $text = app(\App\Services\AI\CaseTranscription::class)->transcribe($bytes, $mime, $this->locale);
+        } catch (\Exception $e) {
+            // Telegram download URLs may contain the bot token. Log only the exception type.
+            \Illuminate\Support\Facades\Log::warning('Chat voice transcription failed', ['type' => $e::class]);
+            $this->send($this->t('wizard.voice_retry'));
+
+            return true;
+        }
+        if (mb_strlen($text) > 4000) {
+            $this->send($this->t('wizard.voice_retry'));
+
+            return true;
+        }
+        foreach (mb_str_split($text, 2000) as $part) {
+            $this->send(Fmt::h($part));
+        }
+
+        return $this->wizardDescription($text);
     }
 
     private function wizardDescription(string $text): bool

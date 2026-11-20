@@ -103,6 +103,23 @@ class MiniAppTest extends TestCase
         $this->assertDatabaseCount('reports', 0);
     }
 
+    public function test_reporter_can_listen_to_an_existing_case_without_the_original_recording(): void
+    {
+        $report = $this->submit('Flooding near the school');
+        $url = route('my.speech', $report);
+        $wav = 'RIFF'.pack('V', 36).'WAVEfmt '.pack('VvvVVvv', 16, 1, 1, 24000, 48000, 2, 16).'data'.pack('V', 0);
+        config(['cohers.ai.gemini_api_key' => 'test-key']);
+        Http::fake(['*' => Http::response(['candidates' => [['content' => ['parts' => [['inlineData' => ['data' => base64_encode($wav)]]]]]]])]);
+        $this->actingAs($this->user('Another reporter', \App\Enums\RoleName::REPORTER, 8002))->postJson($url)->assertNotFound();
+        $this->actingAs($this->reporter)->postJson($url, ['translated' => true])->assertUnprocessable();
+        Http::assertNothingSent();
+        $response = $this->postJson($url)->assertOk()->assertHeader('Content-Type', 'audio/wav');
+        $this->assertSame($wav, $response->getContent());
+        Http::assertSent(fn ($r) => $r['contents'][0]['parts'][0]['text'] === $report->original_text);
+        $this->withSession(["case_translation.{$report->id}.en" => 'Translated text'])->postJson($url, ['translated' => true])->assertOk();
+        Http::assertSent(fn ($r) => $r['contents'][0]['parts'][0]['text'] === 'Translated text');
+    }
+
     public function test_unknown_or_fake_telegram_users_are_refused(): void
     {
         $this->openMiniApp(5555)->assertNotFound()->assertJson(['error' => 'not_registered']);

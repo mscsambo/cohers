@@ -70,7 +70,8 @@ return [
         'select_commune' => "📍 Select the <b>commune</b>:",
         'select_village' => "📍 Select the <b>village</b>:",
         'location_saved_prompt' => "📍 Step 1/4 — Where did it happen?",
-        'describe' => "📝 Step 2/4 — <b>What happened?</b>\nDescribe what you observed (symptoms, animals or environment affected).",
+        'describe' => "📝 Step 2/4 — <b>What happened?</b>\nDescribe what you observed (symptoms, animals or environment affected).\nType your description or send a voice note (up to 1 minute). Google Gemini converts the recording to text in your selected language.",
+        'voice_retry' => 'I could not transcribe that voice note. Try a shorter recording (up to 1 minute), or type the description here.',
         'affected' => "👥 <b>How many people or animals are affected?</b> (e.g. \"5 chickens\", \"3 children\")",
         'when' => "🕒 <b>When did you first observe this?</b>",
         'evidence' => "📷 Step 3/4 — Optionally send up to :max <b>photos</b> and/or a Telegram <b>location pin</b>. Press Done when finished.",
@@ -176,6 +177,9 @@ return [
 
     // Reporter Mini App ("My reports") opened from the bot.
     'miniapp' => [
+        'cloud_read' => 'Read this text with Google Gemini',
+        'audio_loading' => 'Preparing audio…',
+        'audio_failed' => 'Audio could not be generated. Please try again.',
         'dictate' => 'Speak your description',
         'dictation_file' => 'Choose an audio recording',
         'dictation_notice' => 'Record up to one minute. Google Gemini converts your audio into text in your selected language.',
