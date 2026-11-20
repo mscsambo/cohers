@@ -39,6 +39,7 @@
             <span class="text-sm font-semibold">📝 {{ __('bot.miniapp.what') }}</span>
             <textarea name="original_text" rows="4" class="field mt-1" required minlength="3" maxlength="4000" placeholder="{{ __('bot.miniapp.what_placeholder') }}">{{ old('original_text') }}</textarea>
         </label>
+        @include('miniapp._dictation')
         <label class="block">
             <span class="text-sm font-semibold">👥 {{ __('bot.miniapp.affected') }}</span> <span class="hint text-xs">({{ __('bot.miniapp.optional') }})</span>
             <input name="affected_count" maxlength="60" class="field mt-1" value="{{ old('affected_count') }}" placeholder="{{ __('bot.miniapp.affected_placeholder') }}">

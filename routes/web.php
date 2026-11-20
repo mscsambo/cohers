@@ -32,6 +32,7 @@ Route::post('/tg/auth', [\App\Http\Controllers\MiniApp\MiniAppController::class,
 Route::middleware('auth')->prefix('my')->name('my.')->group(function () {
     Route::get('/', [\App\Http\Controllers\MiniApp\MyReportsController::class, 'index'])->name('index');
     Route::get('/new', [\App\Http\Controllers\MiniApp\MyReportsController::class, 'create'])->name('create');
+    Route::post('/dictation', [\App\Http\Controllers\MiniApp\MyReportsController::class, 'dictate'])->middleware('throttle:10,1')->name('dictation');
     Route::post('/', [\App\Http\Controllers\MiniApp\MyReportsController::class, 'store'])->middleware('throttle:10,1')->name('store');
     Route::get('/geo/{commune:id}/villages', [\App\Http\Controllers\MiniApp\MyReportsController::class, 'villages'])->name('villages');
     // Reports saved offline on the phone ask for a fresh CSRF token before they are sent.

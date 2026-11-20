@@ -176,6 +176,15 @@ return [
 
     // Reporter Mini App ("My reports") opened from the bot.
     'miniapp' => [
+        'dictate' => 'Speak your description',
+        'dictation_file' => 'Choose an audio recording',
+        'dictation_notice' => 'Record up to one minute. Google Gemini converts your audio into text in your selected language.',
+        'dictation_stop' => 'Stop recording',
+        'dictation_listening' => 'Listening…',
+        'dictation_wait' => 'Converting speech to text…',
+        'dictation_review' => 'Review and edit your description before sending.',
+        'dictation_long' => 'This recording would exceed the description limit. Try a shorter phrase.',
+        'dictation_fallback' => 'Voice input was unavailable. Try your keyboard microphone or type your description.',
         'read_aloud' => 'Read aloud',
         'stop_reading' => 'Stop reading',
         'translate_case' => 'Translate to English with Google Gemini',

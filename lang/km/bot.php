@@ -176,6 +176,15 @@ return [
 
     // Reporter Mini App ("My reports") opened from the bot.
     'miniapp' => [
+        'dictate' => 'និយាយដើម្បីបញ្ចូលការពិពណ៌នា',
+        'dictation_file' => 'ជ្រើសរើសឯកសារសំឡេង',
+        'dictation_notice' => 'ថតសំឡេងរហូតដល់មួយនាទី។ Google Gemini បម្លែងសំឡេងរបស់អ្នកទៅជាអត្ថបទជាភាសាដែលអ្នកបានជ្រើសរើស។',
+        'dictation_stop' => 'បញ្ឈប់ការថតសំឡេង',
+        'dictation_listening' => 'កំពុងស្ដាប់…',
+        'dictation_wait' => 'កំពុងបម្លែងសំឡេងទៅជាអត្ថបទ…',
+        'dictation_review' => 'សូមអាន និងកែសម្រួលការពិពណ៌នាមុនពេលផ្ញើ។',
+        'dictation_long' => 'អត្ថបទនឹងលើសចំនួនតួអក្សរដែលអនុញ្ញាត។ សូមនិយាយឃ្លាខ្លីជាងនេះ។',
+        'dictation_fallback' => 'មិនអាចបញ្ចូលសំឡេងបានទេ។ សូមប្រើមីក្រូហ្វូនលើក្ដារចុច ឬវាយការពិពណ៌នា។',
         'read_aloud' => 'ស្តាប់ការអាន',
         'stop_reading' => 'បញ្ឈប់ការអាន',
         'translate_case' => 'បកប្រែជាភាសាខ្មែរដោយ Google Gemini',

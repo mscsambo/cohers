@@ -91,6 +91,18 @@ class MiniAppTest extends TestCase
             && $request['contents'][0]['parts'][0]['text'] === $report->original_text);
     }
 
+    public function test_reporter_can_dictate_before_creating_a_case(): void
+    {
+        config(['cohers.ai.gemini_api_key' => 'test-key']);
+        Http::fake(['*' => Http::response(['candidates' => [['content' => ['parts' => [['text' => 'Flooding near the school.']]]]]])]);
+        $this->actingAs($this->reporter)->get('/my/new')->assertOk()->assertSee('id="dictate"', false);
+        $audio = \Illuminate\Http\UploadedFile::fake()->create('clip.wav', 20, 'audio/wav');
+        $this->postJson('/my/dictation', ['audio' => $audio])->assertOk()->assertJsonPath('text', 'Flooding near the school.');
+        Http::assertSent(fn ($r) => str_contains($r['systemInstruction']['parts'][0]['text'], 'English'));
+        $this->postJson('/my/dictation', [])->assertUnprocessable();
+        $this->assertDatabaseCount('reports', 0);
+    }
+
     public function test_unknown_or_fake_telegram_users_are_refused(): void
     {
         $this->openMiniApp(5555)->assertNotFound()->assertJson(['error' => 'not_registered']);
