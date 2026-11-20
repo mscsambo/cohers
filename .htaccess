@@ -1,0 +1,17 @@
+# Guard the application when shared hosting places its root under public_html.
+Options -Indexes -MultiViews
+RewriteEngine On
+
+RewriteCond %{HTTP_HOST} !^app\.sustainableforcambodia\.org(?::[0-9]+)?$ [NC]
+RewriteRule ^ - [F,L]
+
+RewriteRule (^|/)\. - [F,L]
+RewriteCond %{HTTP:Authorization} .
+RewriteRule ^ - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteCond %{HTTP:X-XSRF-TOKEN} .
+RewriteRule ^ - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-TOKEN}]
+
+# Serve public assets directly and send every other request to Laravel.
+RewriteCond %{DOCUMENT_ROOT}/public/$1 -f
+RewriteRule ^(.+)$ public/$1 [END]
+RewriteRule ^ public/index.php [END]
