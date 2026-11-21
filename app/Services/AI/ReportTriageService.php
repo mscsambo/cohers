@@ -5,18 +5,20 @@ namespace App\Services\AI;
 use App\Enums\EscalationTrigger;
 use App\Enums\Priority;
 use App\Enums\ReportStatus;
+use App\Jobs\RouteReportJob;
+use App\Models\AiTriage;
 use App\Models\Report;
 use App\Models\ReportCategory;
 use App\Models\SystemSetting;
 use App\Services\Escalation\EscalationService;
 use App\Services\Reporting\ReportService;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Combines advisory AI output with deterministic rules (section 02 step 4).
  * Uncertain or failed classifications go to manual review; CRITICAL opens a
  * district escalation in parallel with focal-point routing.
  *
- * @return bool true when the report is ready for automatic routing
  */
 class ReportTriageService
 {
@@ -30,6 +32,32 @@ class ReportTriageService
     public function run(Report $report): bool
     {
         $triage = $this->ai->classify($report);
+        // The provider call can be slow. Lock only while applying the result and
+        // enqueuing its assignment, so a newer manual decision takes precedence.
+        return DB::transaction(function () use ($report, $triage) {
+            $current = Report::lockForUpdate()->find($report->id);
+            if (! $current || ! in_array($current->status, [ReportStatus::SUBMITTED, ReportStatus::TRIAGE_REVIEW], true)
+                || in_array($current->triage_status, ['DONE', 'MANUAL'], true)) {
+                return false;
+            }
+
+            if (! $this->apply($current, $triage)) {
+                return false;
+            }
+
+            $driver = config('queue.connections.'.config('queue.default').'.driver');
+            if (in_array($driver, ['database', 'sync'], true)) {
+                RouteReportJob::dispatch($current->id);
+            } else {
+                RouteReportJob::dispatch($current->id)->afterCommit();
+            }
+
+            return true;
+        }, 3);
+    }
+
+    private function apply(Report $report, AiTriage $triage): bool
+    {
         $minConfidence = (float) SystemSetting::get_value('ai.min_confidence', config('cohers.ai.min_confidence'));
 
         $category = $triage->outcome === 'success' && $triage->category_code !== 'UNKNOWN'

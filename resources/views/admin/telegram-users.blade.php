@@ -45,7 +45,10 @@
             </tr></thead>
             <tbody>
             @forelse ($accounts as $a)
-                @php $u = $a->user; @endphp
+                @php
+                    $u = $a->user;
+                    $historyParams = ['account' => $a, 'page_from' => $accounts->currentPage()] + request()->only(['role', 'q', 'status', 'activity']);
+                @endphp
                 <tr>
                     <td>
                         <div class="font-medium">{{ $u?->name ?? '—' }}</div>
@@ -67,11 +70,12 @@
                             <span title="{{ \App\Support\Fmt::dt($a->last_seen_at) }}">{{ $a->last_seen_at->diffForHumans() }}</span>
                         @else<span class="text-slate-400">never</span>@endif
                     </td>
-                    <td class="text-right tabular-nums">{{ $a->reports_count }}</td>
-                    <td class="text-right tabular-nums">{{ $a->active_assignments_count ?: '' }}</td>
+                    <td class="text-right tabular-nums">@if ($a->reports_count)<a class="text-teal-700 underline" href="{{ route('admin.telegram-users.history', $historyParams + ['cases' => 'submitted']) }}">{{ $a->reports_count }}</a>@else 0 @endif</td>
+                    <td class="text-right tabular-nums">@if ($a->active_assignments_count)<a class="text-teal-700 underline" href="{{ route('admin.telegram-users.history', $historyParams + ['cases' => 'active']) }}">{{ $a->active_assignments_count }}</a>@endif</td>
                     <td><x-chip :color="$a->status === 'active' ? 'emerald' : 'rose'">{{ $a->status }}</x-chip></td>
                     <td class="whitespace-nowrap text-right">
                         @if ($u)
+                            <a href="{{ route('admin.telegram-users.history', $historyParams) }}" class="mr-2 text-xs font-medium text-teal-700 underline">Case history</a>
                             <a href="{{ route('admin.users.edit', $u) }}" class="text-xs font-medium text-teal-700 hover:underline">Manage</a>
                             <details class="inline-block text-left">
                                 <summary class="ml-2 cursor-pointer text-xs font-medium text-rose-600">Unlink</summary>

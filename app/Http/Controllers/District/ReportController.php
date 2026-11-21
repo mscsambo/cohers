@@ -131,7 +131,7 @@ class ReportController extends Controller
         }
 
         if ($request->boolean('route') && ! $report->activeAssignment()->exists()) {
-            RouteReportJob::dispatchSync($report->id);
+            RouteReportJob::dispatchSync($report->id, manual: true);
         }
 
         return back()->with('status', 'Classification updated.');

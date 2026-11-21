@@ -7,7 +7,7 @@
     <x-kpi label="Reports total" :value="$reports['total']" :sub="$reports['today'].' in last 24h'" :href="route('district.reports.index')" />
     <x-kpi label="Manual triage queue" :value="$reports['triage_review']" tone="amber" :href="route('district.reports.index', ['status' => 'TRIAGE_REVIEW'])" />
     <x-kpi label="Open escalations" :value="$reports['open_escalations']" tone="rose" :href="route('district.escalations.index')" />
-    <x-kpi label="Officers not linked" :value="$h['unlinked_officers']" tone="orange" sub="cannot receive alerts" :href="route('admin.users.index', ['role' => 'focal_point'])" />
+    <x-kpi label="Officers not linked" :value="$h['unlinked_officers']" tone="orange" sub="cannot receive alerts" :href="route('admin.users.index', ['role' => 'focal_point', 'unlinked' => 1])" />
 </div>
 
 <div class="grid gap-5 xl:grid-cols-3">

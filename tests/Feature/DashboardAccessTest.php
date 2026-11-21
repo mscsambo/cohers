@@ -34,6 +34,19 @@ class DashboardAccessTest extends TestCase
         return User::where('email', 'district.baphnum@cohers.test')->first();
     }
 
+    public function test_unlinked_officers_card_opens_the_matching_accounts(): void
+    {
+        $officers = User::withRole(\App\Enums\RoleName::FOCAL_POINT)->whereHas('telegramAccount')->get();
+        $unlinked = $officers->firstOrFail();
+        $unlinked->telegramAccount()->delete();
+        $url = route('admin.users.index', ['role' => 'focal_point', 'unlinked' => 1]);
+        $this->actingAs($this->admin())->get('/admin')->assertOk()->assertSee($url);
+        $this->get($url)->assertOk()->assertViewHas('users', function ($users) use ($unlinked) {
+            return $users->contains('id', $unlinked->id)
+                && $users->every(fn ($user) => $user->isFocalPoint() && ! $user->telegramAccount);
+        });
+    }
+
     public function test_every_page_renders_for_admin(): void
     {
         $this->actingAs($this->admin());

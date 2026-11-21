@@ -15,6 +15,9 @@
                 @foreach (['active', 'suspended', 'pending'] as $s)<option @selected(request('status') === $s)>{{ $s }}</option>@endforeach
             </select>
         </div>
+        <label class="mb-2 flex items-center gap-2 text-sm">
+            <input type="checkbox" name="unlinked" value="1" @checked(request()->boolean('unlinked'))> No Telegram link
+        </label>
         <button class="btn btn-ghost">Filter</button>
         <a href="{{ route('admin.users.create') }}" class="btn btn-primary">+ New account</a>
     </form>

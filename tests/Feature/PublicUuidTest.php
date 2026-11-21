@@ -40,6 +40,8 @@ class PublicUuidTest extends TestCase
         $this->actingAs($this->admin)->get("/admin/users/{$this->vhsg->id}")->assertNotFound();
 
         // Links rendered on pages use the uuid.
+        $this->actingAs($this->admin)->get('/admin/categories')->assertOk()
+            ->assertSee('href="'.route('district.reports.show', $report).'"', false);
         // (the drawer link is written as JSON, so its slashes appear escaped as \/)
         $this->actingAs($this->districtOfficer)->get('/reports')
             ->assertSee($report->uuid.'\/drawer', false)

@@ -73,7 +73,8 @@ class ReportRoutingService
                     ->where('account_status', 'active')
                     ->where('officer_type', $officerType?->value)
                     ->whereHas('roles', fn ($r) => $r->where('name', RoleName::FOCAL_POINT->value)))
-                ->orderBy('effective_from', 'desc')
+                ->orderByDesc('effective_from')
+                ->orderByDesc('id')
                 ->first();
 
             if ($mapping) {

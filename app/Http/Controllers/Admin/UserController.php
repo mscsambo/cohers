@@ -26,6 +26,7 @@ class UserController extends Controller
         $users = User::with('roles', 'telegramAccount', 'scopes')
             ->when($request->role, fn ($q, $v) => $q->whereHas('roles', fn ($r) => $r->where('name', $v)))
             ->when($request->status, fn ($q, $v) => $q->where('account_status', $v))
+            ->when($request->boolean('unlinked'), fn ($q) => $q->whereDoesntHave('telegramAccount'))
             ->when($request->q, fn ($q, $v) => $q->where(fn ($w) => $w->where('name', 'like', "%{$v}%")->orWhere('email', 'like', "%{$v}%")))
             ->orderBy('name')->paginate(30)->withQueryString();
 

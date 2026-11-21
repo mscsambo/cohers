@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\AssignmentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Role;
 use App\Models\TelegramAccount;
 use App\Services\AuditService;
 use App\Support\Fmt;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 /** Admin-only directory of every account connected to the Telegram bot. */
 class TelegramUserController extends Controller
@@ -53,6 +55,35 @@ class TelegramUserController extends Controller
                 'active_7d' => $all->filter(fn ($a) => $a->last_seen_at?->gte(now()->subDays(7)))->count(),
             ],
         ]);
+    }
+
+    public function history(Request $request, TelegramAccount $account)
+    {
+        $user = $account->user()->firstOrFail();
+        $filter = $request->query('cases', 'all');
+        $submitted = DB::table('reports')->where('reporter_id', $user->id)
+            ->selectRaw("id as event_id, id as report_id, submitted_at as happened_at, 'Submitted' as action");
+        $assigned = DB::table('report_assignments')->where('focal_point_user_id', $user->id)
+            ->selectRaw("id as event_id, report_id, assigned_at as happened_at, 'Assigned to officer' as action");
+        $routed = DB::table('report_assignments')->where('assigned_by', $user->id)
+            ->selectRaw("id as event_id, report_id, assigned_at as happened_at, 'Assigned by officer' as action");
+        $closed = DB::table('case_closures')->where('closed_by', $user->id)
+            ->selectRaw("id as event_id, report_id, closed_at as happened_at, 'Closed' as action");
+        $events = match ($filter) {
+            'submitted' => $submitted,
+            'active' => $assigned->whereIn('assignment_status', AssignmentStatus::active()),
+            'all' => $submitted->unionAll($assigned)->unionAll($routed)->unionAll($closed),
+            default => abort(404),
+        };
+        $history = DB::query()->fromSub($events, 'events')->join('reports as r', 'r.id', '=', 'events.report_id')
+            ->select('events.*', 'r.reference_code', 'r.uuid', 'r.status')
+            ->orderByDesc('happened_at')->orderByDesc('event_id')->orderBy('action')
+            ->paginate(30)->withQueryString();
+
+        $directory = $request->only(['role', 'q', 'status', 'activity']);
+        $directory['page'] = max(1, $request->integer('page_from', 1));
+
+        return view('admin.telegram-case-history', compact('user', 'history', 'filter', 'directory'));
     }
 
     public function export(Request $request)

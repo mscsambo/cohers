@@ -72,6 +72,37 @@ class WorkflowAcceptanceTest extends TestCase
         $this->assertNotNull($human->activeAssignment->ack_due_at);
     }
 
+    public function test_accepted_triage_queues_assignment_on_the_database_worker(): void
+    {
+        config(['queue.default' => 'database']);
+        $report = $this->submit('Many pigs have fever and stopped eating');
+        $this->assertSame(ReportStatus::SUBMITTED, $report->status);
+        $this->artisan('queue:work', ['database', '--stop-when-empty' => true, '--sleep' => 0])->assertSuccessful();
+        $this->assertSame(ReportStatus::ASSIGNED, $report->fresh()->status);
+        $this->assertSame($this->cao->id, $report->fresh()->activeAssignment->focal_point_user_id);
+        $this->assertSame(1, $report->assignments()->count());
+    }
+
+    public function test_delayed_routing_only_assigns_an_eligible_case_once(): void
+    {
+        $report = $this->submit('Many pigs have fever and stopped eating');
+        $originalCount = $report->assignments()->count();
+        \App\Jobs\RouteReportJob::dispatchSync($report->id);
+        $this->assertSame($originalCount, $report->assignments()->count());
+
+        $report->assignments()->delete();
+        $report->update(['status' => ReportStatus::VERIFIED]);
+        \App\Jobs\RouteReportJob::dispatchSync($report->id);
+        $this->assertSame(ReportStatus::VERIFIED, $report->fresh()->status);
+        $this->assertFalse($report->assignments()->exists());
+
+        $report->update(['status' => ReportStatus::TRIAGE_REVIEW, 'triage_status' => 'MANUAL']);
+        \App\Jobs\RouteReportJob::dispatchSync($report->id);
+        $this->assertFalse($report->assignments()->exists());
+        \App\Jobs\RouteReportJob::dispatchSync($report->id, manual: true);
+        $this->assertSame($this->cao->id, $report->fresh()->activeAssignment->focal_point_user_id);
+    }
+
     /** #4 Unmatched location or inactive focal point → backup, then district queue. */
     public function test_inactive_primary_falls_back_to_backup_then_district(): void
     {

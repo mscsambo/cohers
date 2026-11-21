@@ -20,7 +20,7 @@ class CategoryController extends Controller
 
     public function index()
     {
-        $recent = AiTriage::with('report:id,reference_code')->latest('id')->limit(25)->get();
+        $recent = AiTriage::with('report:id,uuid,reference_code')->latest('id')->limit(25)->get();
 
         return view('admin.categories', [
             'categories' => ReportCategory::orderBy('sort')->get(),

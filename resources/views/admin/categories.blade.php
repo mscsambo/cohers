@@ -47,7 +47,7 @@
             @foreach ($recent as $t)
                 <tr>
                     <td class="whitespace-nowrap text-xs">{{ \App\Support\Fmt::dt($t->created_at) }}</td>
-                    <td class="font-mono text-xs">@if ($t->report)<a class="text-teal-700 hover:underline" href="{{ route('district.reports.show', $t->report_id) }}">{{ $t->report->reference_code }}</a>@endif</td>
+                    <td class="font-mono text-xs">@if ($t->report)<a class="text-teal-700 hover:underline" href="{{ route('district.reports.show', $t->report) }}">{{ $t->report->reference_code }}</a>@endif</td>
                     <td class="text-xs">{{ $t->provider }}<div class="text-slate-400">{{ $t->model }}</div></td>
                     <td><x-chip :color="$t->outcome === 'success' ? 'emerald' : 'rose'">{{ $t->outcome }}</x-chip></td>
                     <td class="max-w-xs text-xs">{{ $t->outcome === 'success' ? "{$t->category_code} · {$t->suggested_priority} · ".number_format($t->confidence, 2).($t->needs_manual_review ? ' · review' : '') : \Illuminate\Support\Str::limit($t->error, 80) }}</td>

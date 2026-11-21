@@ -149,6 +149,7 @@ Route::middleware(['auth', 'mfa', 'role:system_admin'])
 
         Route::get('/telegram-users', [Admin\TelegramUserController::class, 'index'])->name('telegram-users.index');
         Route::get('/telegram-users/export', [Admin\TelegramUserController::class, 'export'])->name('telegram-users.export');
+        Route::get('/telegram-users/{account}/cases', [Admin\TelegramUserController::class, 'history'])->name('telegram-users.history');
 
         Route::get('/configuration', [Admin\ConfigurationController::class, 'edit'])->name('configuration.edit');
         Route::put('/configuration', [Admin\ConfigurationController::class, 'update'])->name('configuration.update');

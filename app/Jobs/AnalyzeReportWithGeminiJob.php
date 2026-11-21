@@ -31,8 +31,6 @@ class AnalyzeReportWithGeminiJob implements ShouldQueue
         }
 
         if ($triage->run($report)) {
-            RouteReportJob::dispatch($report->id);
-
             return;
         }
 

@@ -6,11 +6,12 @@
 @endpush
 @section('content')
     @include('partials.filters')
-    <div class="grid gap-5 xl:grid-cols-4">
-        <x-card class="xl:col-span-3" :padding="false">
+    <div class="space-y-5">
+        <x-card :padding="false">
             <div id="map" class="h-[560px] rounded-xl"></div>
         </x-card>
-        <div class="space-y-5">
+        <div class="grid gap-5 md:grid-cols-2">
+            <x-card title="Top communes" :padding="false"><div id="top" class="divide-y divide-slate-100 text-sm"></div></x-card>
             <x-card title="How to read this map">
                 <ul class="space-y-2 text-sm text-slate-600">
                     <li>Bubbles are aggregated at <b>commune</b> level to protect sensitive locations; individual villages and GPS pins are never shown.</li>
@@ -22,8 +23,8 @@
                     <div class="flex items-center gap-2"><span class="h-3 w-3 rounded-full bg-teal-600"></span> Medium / low only</div>
                 </div>
             </x-card>
-            <x-card title="Top communes" :padding="false"><div id="top" class="divide-y divide-slate-100 text-sm"></div></x-card>
         </div>
+
     </div>
 @endsection
 @push('scripts')

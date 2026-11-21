@@ -160,6 +160,22 @@ class AdminFeaturesTest extends TestCase
         $this->assertStringContainsString($this->vhsg->name, $text);
     }
 
+    public function test_admin_can_browse_a_telegram_users_case_history(): void
+    {
+        $r = $this->submit('Many pigs have fever and stopped eating');
+        $r->closures()->create(['closed_by' => $this->districtOfficer->id, 'previous_status' => 'ASSIGNED',
+            'outcome_summary' => 'Reviewed', 'closed_at' => now()]);
+        $this->actingAs($this->admin);
+        foreach ([[$this->reporter, 'Submitted'], [$this->cao, 'Assigned to officer'], [$this->districtOfficer, 'Closed']] as [$user, $action]) {
+            $url = route('admin.telegram-users.history', $user->telegramAccount);
+            $this->get($url)->assertOk()->assertSee($action)->assertSee(route('district.reports.show', $r));
+        }
+        $url = route('admin.telegram-users.history', $this->cao->telegramAccount);
+        $this->get($url.'?cases=active')->assertOk()->assertSee($r->reference_code);
+        $this->get($url.'?cases=submitted')->assertOk()->assertDontSee($r->reference_code);
+        $this->actingAs($this->districtOfficer)->get($url)->assertForbidden();
+    }
+
     public function test_telegram_users_page_is_admin_only(): void
     {
         $this->actingAs($this->admin)->get('/admin/telegram-users')->assertOk()->assertSee('VHSG One')->assertSee('9001');
