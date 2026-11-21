@@ -89,6 +89,9 @@
             </div>
         </div>
         <nav class="h-[calc(100%-4rem)] space-y-6 overflow-y-auto px-3 py-5">
+            @if ($u->hasRole('health_center'))
+                <a href="{{ route('health.index') }}" class="nav-link {{ request()->routeIs('health.*') ? 'active' : '' }}">Health Center reviews</a>
+            @endif
             @if ($u->isFocalPoint())
                 <div>
                     <div class="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Field officer · {{ $u->officer_type?->value }}</div>
@@ -138,10 +141,12 @@
                 <p class="hidden truncate text-xs text-slate-500 sm:block">@yield('subtitle', 'Scope: '.$scopeNames)</p>
             </div>
             @php $tgLinked = $u->telegramAccount?->status === 'active'; @endphp
+            @if ($u->isPrivileged() || $u->isFocalPoint())
             <a href="{{ route('account.telegram') }}" class="btn btn-ghost" title="{{ $tgLinked ? 'Telegram connected' : 'Connect Telegram to receive alerts' }}">
                 <span class="h-2 w-2 rounded-full {{ $tgLinked ? 'bg-emerald-500' : 'bg-rose-500' }}"></span>
                 <span class="hidden md:inline">My Telegram</span>
             </a>
+            @endif
             <div class="hidden text-right sm:block">
                 <div class="text-sm font-medium text-slate-800">{{ $u->name }}</div>
                 <div class="text-xs text-slate-500">{{ $u->roles->pluck('label')->implode(' · ') }}</div>
@@ -155,7 +160,7 @@
         </header>
 
         <main class="mx-auto max-w-[1500px] p-4 sm:p-6">
-            @if (! $tgLinked && ! request()->routeIs('account.telegram*'))
+            @if (($u->isPrivileged() || $u->isFocalPoint()) && ! $tgLinked && ! request()->routeIs('account.telegram*'))
                 <div class="tg-hide mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
                     <span class="flex-1">📲 {{ $u->isPrivileged()
                         ? 'Connect your Telegram to get an alert whenever a case is assigned in your '.($u->isAdmin() ? 'districts' : 'district').'.'

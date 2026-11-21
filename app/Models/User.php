@@ -122,7 +122,7 @@ class User extends Authenticatable
     /** Roles that may sign in to the web dashboard: admin, district officer, and VHSG/CAO focal points. */
     public function canUseDashboard(): bool
     {
-        return $this->isPrivileged() || $this->isFocalPoint();
+        return $this->isPrivileged() || $this->isFocalPoint() || $this->hasRole(RoleName::HEALTH_CENTER);
     }
 
     /** Cached area scope, keyed to the loaded scopes collection. */

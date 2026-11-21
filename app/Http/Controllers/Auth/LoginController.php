@@ -46,7 +46,7 @@ class LoginController extends Controller
         // (Only someone who already knows the password learns the account's access level.)
         if ($passwordOk && $user->isActive() && ! $user->canUseDashboard()) {
             $this->audit->record('auth.no_dashboard_role', $user, null, $data['email']);
-            throw ValidationException::withMessages(['email' => 'This account has no dashboard access. Dashboard sign-in needs the System Administrator, District Officer or Local Focal Point (VHSG / CAO) role.']);
+            throw ValidationException::withMessages(['email' => 'This account has no dashboard access. Dashboard sign-in needs the System Administrator, District Officer, Health Center Focal Point or Local Focal Point (VHSG / CAO) role.']);
         }
 
         $ok = $passwordOk && $user->isActive() && $user->canUseDashboard()
@@ -83,6 +83,7 @@ class LoginController extends Controller
             $user->isDistrictOfficer() => route('district.overview'),
             $user->isAdmin() => route('admin.overview'),
             $user->isFocalPoint() => route('field.index'),
+            $user->hasRole(\App\Enums\RoleName::HEALTH_CENTER) => route('health.index'),
             default => route('my.index'),
         };
     }

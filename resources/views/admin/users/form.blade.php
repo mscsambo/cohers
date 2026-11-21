@@ -6,7 +6,7 @@
     $heldRoles = $user->roles?->pluck('name')->all() ?? [];
     // One choice covers role and, for focal points, the VHSG / CAO type ("focal_point:CAO").
     // A new account starts with no role so the admin picks one deliberately.
-    $heldRole = collect(['system_admin', 'district_officer', 'focal_point', 'reporter'])->first(fn ($r) => in_array($r, $heldRoles, true));
+    $heldRole = collect(['system_admin', 'district_officer', 'health_center', 'focal_point', 'reporter'])->first(fn ($r) => in_array($r, $heldRoles, true));
     $currentRole = old('role', $user->exists ? ($heldRole ?? 'reporter') : '');
     if ($currentRole === 'focal_point') {
         $currentRole .= ':'.old('officer_type', $user->officer_type?->value);
@@ -16,6 +16,7 @@
         'reporter' => $roleLabel('reporter'),
         'focal_point:VHSG' => $roleLabel('focal_point').' — VHSG (human health)',
         'focal_point:CAO' => $roleLabel('focal_point').' — CAO (animal & environment)',
+        'health_center' => $roleLabel('health_center'),
         'district_officer' => $roleLabel('district_officer'),
         'system_admin' => $roleLabel('system_admin'),
     ];
@@ -23,6 +24,7 @@
         'reporter' => 'Telegram reporting only — no dashboard sign-in.',
         'focal_point:VHSG' => 'Village Health Support Group: receives HUMAN-health cases for their communes; Telegram alerts, field verification and the “My field cases” page.',
         'focal_point:CAO' => 'Commune Agriculture Officer: receives ANIMAL and ENVIRONMENT cases for their communes; Telegram alerts, field verification and the “My field cases” page.',
+        'health_center' => 'Reviews human illness or exposure referrals within the assigned catchment.',
         'district_officer' => 'Dashboard for the assigned area (province, districts or communes): triage, reassign, review findings and close cases.',
         'system_admin' => 'Configuration and oversight of the whole system; no verification authority.',
     ];
@@ -75,10 +77,11 @@
                     <h3 class="text-sm font-semibold text-slate-900">Assigned location</h3>
                     <p class="text-xs text-slate-500" data-role-only="none">Choose a role first. District Officers and Local Focal Points are given a location here.</p>
                     <p class="text-xs text-slate-500" data-role-only="reporter system_admin">Not needed for this role.</p>
+                    <p class="text-xs text-slate-500" data-role-only="health_center">Select the communes served by this health center, or its wider catchment.</p>
                     <p class="text-xs text-slate-500" data-role-only="district_officer">Tick a whole province, whole districts, or single communes. The officer sees and manages every report inside.</p>
                     <p class="text-xs text-slate-500" data-role-only="focal_point">Pick a province and district, then tick the communes this officer covers. Cases there are routed to them.</p>
                 </div>
-                <div data-role-only="district_officer focal_point">
+                <div data-role-only="district_officer health_center focal_point">
                 <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                     <div><label class="label" for="pickProvince">Province</label><select id="pickProvince" class="input"></select></div>
                     <div><label class="label" for="pickDistrict">District</label><select id="pickDistrict" class="input"></select></div>
@@ -93,7 +96,7 @@
 
                 <div class="mt-4">
                     <div class="label">Selected <span id="selCount" class="font-normal normal-case text-slate-400"></span></div>
-                    <div id="selDistricts" data-role-only="district_officer" class="flex flex-wrap gap-2"></div>
+                    <div id="selDistricts" data-role-only="district_officer health_center" class="flex flex-wrap gap-2"></div>
                     <div id="selAreas" data-role-only="focal_point" class="divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white"></div>
                     <p id="selEmpty" class="text-xs text-slate-400">Nothing selected yet.</p>
                 </div>
@@ -171,7 +174,7 @@
         const role = $('role');
         const roleName = () => role.value.split(':')[0];
         const officerType = () => role.value.split(':')[1] || '';
-        const isDO = () => roleName() === 'district_officer';
+        const isDO = () => ['district_officer', 'health_center'].includes(roleName());
         const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
         const ancestors = id => { const out = []; let u = byId[byId[id]?.parent]; while (u) { out.push(u.id); u = byId[u.parent]; } return out; };
         const provinceOf = id => { let u = byId[id]; while (u && u.type !== 'province') u = byId[u.parent]; return u; };

@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\MfaController;
 use App\Http\Controllers\District;
+use App\Http\Controllers\HealthReviewController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => auth()->check() ? redirect(LoginController::home(auth()->user())) : redirect()->route('login'));
@@ -75,6 +76,12 @@ Route::middleware(['auth', 'mfa', 'role:focal_point'])
         Route::post('/cases/{report}/findings', [\App\Http\Controllers\Field\FieldCaseController::class, 'findings'])->name('cases.findings');
     });
 
+Route::middleware(['auth', 'mfa', 'role:health_center'])->prefix('health-reviews')->name('health.')->group(function () {
+    Route::get('/', [HealthReviewController::class, 'index'])->name('index');
+    Route::post('/{report}/acknowledge', [HealthReviewController::class, 'acknowledge'])->name('acknowledge');
+    Route::post('/{report}/complete', [HealthReviewController::class, 'complete'])->name('complete');
+});
+
 // Evidence photos: any dashboard role, then ReportPolicy decides per case.
 Route::middleware(['auth', 'mfa', 'role:district_officer,system_admin,focal_point'])
     ->get('/attachments/{attachment}', [District\ReportController::class, 'attachment'])->name('district.attachments.show');
@@ -99,6 +106,7 @@ Route::middleware(['auth', 'mfa', 'role:district_officer,system_admin'])
         Route::get('/reports/{report}', [District\ReportController::class, 'show'])->name('reports.show');
         Route::get('/reports/{report}/drawer', [District\ReportController::class, 'drawer'])->name('reports.drawer');
         Route::post('/reports/{report}/reassign', [District\ReportController::class, 'reassign'])->name('reports.reassign');
+        Route::post('/reports/{report}/health-review', [HealthReviewController::class, 'refer'])->name('reports.health-review');
         Route::post('/reports/{report}/triage', [District\ReportController::class, 'triage'])->name('reports.triage');
         Route::post('/reports/{report}/link', [District\ReportController::class, 'linkIncident'])->name('reports.link');
         Route::post('/reports/{report}/close', [District\ReportController::class, 'close'])->name('reports.close');

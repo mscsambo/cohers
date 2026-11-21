@@ -81,6 +81,8 @@ class ReportController extends Controller
         $this->audit->record('report.viewed', $report);
 
         return view('district.reports.show', [
+            'healthReview' => \App\Models\HealthReview::with('reviewer')->where('report_id', $report->id)->first(),
+            'healthReviewers' => \App\Models\HealthReview::eligibleReviewers($report),
             'report' => $this->load($report),
             'officers' => $this->routing->eligibleOfficers($report),
             'categories' => ReportCategory::where('is_active', true)->orderBy('sort')->get(),

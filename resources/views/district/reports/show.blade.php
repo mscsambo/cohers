@@ -228,5 +228,6 @@
                 @if ($report->status->isClosable()) The field outcome is recorded and it is waiting for district approval. @endif</p>
         </x-card>
     @endcan
+    @include('district.reports._health-review')
 </div>
 @endsection

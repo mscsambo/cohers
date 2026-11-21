@@ -168,7 +168,7 @@ class UserController extends Controller
         if ($data['role'] !== RoleName::FOCAL_POINT->value) {
             $data['officer_type'] = null;
         }
-        if ($data['role'] !== RoleName::DISTRICT_OFFICER->value) {
+        if (! in_array($data['role'], [RoleName::DISTRICT_OFFICER->value, RoleName::HEALTH_CENTER->value], true)) {
             $data['scopes'] = [];
         } else {
             $data['scopes'] = $this->tidyScopes($data['scopes'] ?? []);
@@ -221,8 +221,8 @@ class UserController extends Controller
         if (in_array(RoleName::FOCAL_POINT->value, $roles, true) && empty($data['officer_type'])) {
             abort(back()->withErrors(['officer_type' => 'Choose Local Focal Point — VHSG or — CAO.'])->withInput());
         }
-        if (in_array(RoleName::DISTRICT_OFFICER->value, $roles, true) && empty($data['scopes'])) {
-            abort(back()->withErrors(['scopes' => 'District officers need an area: a province, district or commune.'])->withInput());
+        if (array_intersect($roles, [RoleName::DISTRICT_OFFICER->value, RoleName::HEALTH_CENTER->value]) && empty($data['scopes'])) {
+            abort(back()->withErrors(['scopes' => 'This role needs an area: a province, district or commune.'])->withInput());
         }
         if (in_array(RoleName::FOCAL_POINT->value, $roles, true)) {
             $type = OfficerType::from($data['officer_type']);
@@ -232,7 +232,7 @@ class UserController extends Controller
                 }
             }
         }
-        $privileged = array_intersect($roles, [RoleName::DISTRICT_OFFICER->value, RoleName::SYSTEM_ADMIN->value]);
+        $privileged = array_intersect($roles, [RoleName::DISTRICT_OFFICER->value, RoleName::SYSTEM_ADMIN->value, RoleName::HEALTH_CENTER->value]);
         if ($privileged && empty($data['email'])) {
             abort(back()->withErrors(['email' => 'Dashboard users need an email for sign-in.'])->withInput());
         }
